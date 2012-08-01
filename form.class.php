@@ -3,8 +3,8 @@
 class Form {
 		public $valid;
 		public $errors;
-		private $fields;
-		private $validation_errors;
+		protected $fields;
+		protected $validation_errors;
 
 		public function __construct( $fields_array ) {
 			try {
@@ -30,6 +30,8 @@ class Form {
 				
 			}
 			
+			$this->errors = array();
+
 			$validity = $this->check_form_data();
 			if( $validity !== true ) {
 				$this->valid = false;
@@ -163,11 +165,121 @@ class Field {
 		}
 
 		private function validate_checkbox() {
-			
+			return true;
 		}
 
 }
 
+class FormCreator extends Form {
+	private $form_options;
+	private $form_html;
 
+	public function __construct($fields_array, $html_options){
+		parent::__construct($fields_array);
+
+		foreach($html_options as $html_option_key => $html_option_value){
+			$this->{$html_option_key} = $html_option_value;
+		}
+
+		
+
+		if(!empty($this->fields)){
+			$this->form_html = $this->output_form_start();
+
+			foreach($this->fields as $field){
+				$this->form_html .= $this->output_field_html($field);
+			}
+
+			$this->form_html .= $this->output_form_end();
+		}	
+
+	}
+
+	public function output_html() {
+		echo $this->form_html;
+	}
+
+	private function output_form_start(){
+		return sprintf("<form id='%s' class='%s' method='%s' action='%s'>",
+			isset($this->form_options['id']) ? $this->form_options['id'] : 'form',
+			isset($this->form_options['class']) ? $this->form_options['class'] : 'form',
+			isset($this->form_options['method']) ? $this->form_options['method'] : 'post',
+			isset($this->form_options['action']) ? $this->form_options['action'] : ''
+			);
+	}
+
+	private function output_form_end() {
+		return sprintf("<input type='submit' id='%s' class='%s' value='%s' /></form>",
+			isset($this->form_options['submit']['id']) ? $this->form_options['submit']['id'] : 'form-submit',
+			isset($this->form_options['submit']['class']) ? $this->form_options['submit']['class'] : 'form-submit',
+			isset($this->form_options['submit']['value']) ? $this->form_options['submit']['value'] : 'Submit'
+			);
+	}
+
+	private function output_field_html( $field ){
+		try {
+			if( !method_exists( $this, "output_field_type_".$field->type ) ) { 
+				throw new Exception; 
+			}
+			return call_user_func( array($this, "output_field_type_".$field->type), $field );
+		} catch ( Exception $e ) {
+			trigger_error('The field output function "output_field_type_' . $field->type . '" does not exist.', E_USER_NOTICE);
+			return false;
+		} 
+	}
+
+	private function output_field_type_email( $field ){
+		return sprintf("<input id='%s' name='%s' class='%s %s' type='text' value='%s' placeholder='%s' />",
+			$field->name,
+			$field->name,
+			$field->class ? $field->class : $field->type,
+			array_key_exists($field->name, $this->errors) ? 'form-error' : '',
+			$field->clean_value ? $field->clean_value : '',
+			$field->label ? $field->label : ''
+			);
+	}
+
+	private function output_field_type_phone( $field ){
+		return sprintf("<input id='%s' name='%s' class='%s %s' type='text' value='%s' placeholder='%s' />",
+			$field->name,
+			$field->name,
+			$field->class ? $field->class : $field->type,
+			array_key_exists($field->name, $this->errors) ? 'form-error' : '',
+			$field->clean_value ? $field->clean_value : '',
+			$field->label ? $field->label : ''
+			);
+	}
+
+	private function output_field_type_zip( $field ){
+		return sprintf("<input id='%s' name='%s' class='%s %s' type='text' value='%s' placeholder='%s' />",
+			$field->name,
+			$field->name,
+			$field->class ? $field->class : $field->type,
+			array_key_exists($field->name, $this->errors) ? 'form-error' : '',
+			$field->clean_value ? $field->clean_value : '',
+			$field->label ? $field->label : ''
+			);
+	}
+
+	private function output_field_type_numeric( $field ){
+		return sprintf("<input id='%s' name='%s' class='%s %s' type='text' value='%s' placeholder='%s' />",
+			$field->name,
+			$field->name,
+			$field->class ? $field->class : $field->type,
+			array_key_exists($field->name, $this->errors) ? 'form-error' : '',
+			$field->clean_value ? $field->clean_value : '',
+			$field->label ? $field->label : ''
+			);
+	}
+
+	private function output_field_type_checkbox( $field ){
+		return sprintf("<input type='hidden' name='%s' value='false' /><input type='checkbox' name='%s' %s />",
+			$field->name,
+			$field->name,
+			$field->clean_value ? "checked='checked'" : '' 
+			);
+	}
+
+}
 
 ?>

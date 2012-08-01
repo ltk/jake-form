@@ -1,10 +1,15 @@
+<style type="text/css">
+	.form-error {
+		border:1px solid red;
+	}
+</style>
 <?php
 
 
 $fields_array = array(
 	'email' => array(
 		'type' => 'email',
-		'label' => 'email address',
+		'label' => 'Email Address',
 		'required' => true,
 		'required_msg' => 'Please include your email address.',
 		'validation_msg' => 'The email address you entered is invalid.',
@@ -12,7 +17,7 @@ $fields_array = array(
 		),
 	'phone' => array(
 		'type' => 'phone',
-		'label' => 'phone number',
+		'label' => 'Phone Number',
 		'required' => true,
 		//'required_msg' => 'Please include your phone number.',
 		//'validation_msg' => 'The phone number you entered is invalid.',
@@ -46,12 +51,18 @@ $fields_array = array(
 
 	);
 
-
+$form_options = array(
+	'submit' => array(
+		'value' => 'Send it!'
+		)
+	);
 
 include( "form.class.php" );
-$form = new Form($fields_array);
+
+$form = new FormCreator($fields_array, $form_options);
 
 if ( ! empty( $_POST ) ) {
+
 	if ($form->valid) {
 		echo "<h1>Huzzah! A valid submission!!</h1>";
 		echo "<p>The email field's value is: '" . $form->field_value('email') . "'.</p>";
@@ -63,10 +74,10 @@ if ( ! empty( $_POST ) ) {
 		}
 	}
 }
-
+$form->output_html();
 
 ?>
-
+<!-- 
 <form method="post" action="">
 	<input type="hidden" name="submit" value="1" />
 	<input type="text" name="email" placeholder="Email Address" value="<?php echo $form->field_value('email') ?>" />
@@ -77,4 +88,4 @@ if ( ! empty( $_POST ) ) {
 	<input type="checkbox" name="checkers"  />
 
 	<input type="submit" />
-</form>
+</form> -->
